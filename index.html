@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema MES - Gestão de Produção</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="style .css" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
+
+</head>
+<body class="bg-gray-100 dark:bg-slate-900 font-sans text-gray-800 dark:text-gray-200">
+
+    <!-- Tela de Carregamento -->
+    <div id="loading-screen" class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-slate-900 text-white">
+        Carregando...
+    </div>
+
+    <!-- Tela de Autenticação -->
+    <div id="auth-screen" class="hidden">
+        <div class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-slate-900 p-4">
+            <div class="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 space-y-6">
+                <div class="text-center">
+                    <svg class="mx-auto h-12 w-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mt-4">Sistema MES</h1>
+                    <p id="auth-title" class="text-gray-600 dark:text-gray-400">Faça login na sua conta</p>
+                </div>
+                <form id="auth-form" class="space-y-4">
+                    <input type="email" id="auth-email" placeholder="Email" required class="w-full p-3 border rounded dark:bg-slate-700 dark:border-slate-600">
+                    <input type="password" id="auth-password" placeholder="Senha" required class="w-full p-3 border rounded dark:bg-slate-700 dark:border-gray-600">
+                    <p id="auth-error" class="text-red-500 text-sm text-center"></p>
+                    <button type="submit" id="auth-submit-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400">
+                        Entrar
+                    </button>
+                </form>
+                <p id="auth-toggle-container" class="text-center text-sm">
+                    <a href="#" id="auth-toggle-link" class="font-medium text-blue-600 hover:text-blue-500">
+                        Não tem uma conta? Registre-se
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicação Principal -->
+    <div id="app-container" class="hidden min-h-screen flex">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="w-64 bg-white dark:bg-slate-800 p-4 flex-col shadow-lg hidden md:flex">
+            <div class="flex items-center gap-3 mb-4 p-2">
+                <svg class="h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+                <div>
+                   <span class="text-lg font-bold truncate">Empresa Principal</span>
+                   <p class="text-xs text-gray-500 dark:text-gray-400">Sistema MES</p>
+                </div>
+            </div>
+            <ul id="nav-items" class="space-y-2 flex-grow">
+                <!-- Itens de navegação serão inseridos aqui via JS -->
+            </ul>
+            <div class="mt-auto">
+                <div class="p-3 rounded-lg bg-gray-100 dark:bg-slate-700 mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <div>
+                            <p id="user-role" class="font-semibold"></p>
+                            <p id="user-email" class="text-xs text-gray-500 dark:text-gray-400 truncate"></p>
+                        </div>
+                    </div>
+                </div>
+                <button id="logout-button" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 text-red-500 dark:text-red-400 transition-colors">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    Sair
+                </button>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 flex flex-col">
+            <header class="bg-white dark:bg-slate-800 shadow-sm p-4 flex justify-between items-center">
+                <div id="header-user-info" class="flex items-center gap-4">
+                    <!-- Info do usuário para operador -->
+                </div>
+                <h1 id="header-title" class="text-xl font-semibold capitalize"></h1>
+                <div class="flex items-center gap-4">
+                    <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                        <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    </button>
+                    <div id="header-operator-logout"></div>
+                </div>
+            </header>
+            <div id="page-content" class="flex-1 overflow-y-auto">
+                <!-- Conteúdo das páginas será inserido aqui -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modais -->
+    <div id="alert-modal-container"></div>
+    <div id="confirm-modal-container"></div>
+    <div id="custom-modal-container"></div>
+
+    <!-- Templates HTML -->
+     <template id="manager-dashboard-template">
+    <div class="p-4 md:p-8 space-y-8">
+        <h1 class="text-3xl font-bold text-slate-100">Dashboard Gerencial</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-slate-800 p-6 rounded-lg shadow-md border border-slate-700">
+                <h3 class="text-sm font-medium text-slate-400">Ordens de Produção (Hoje)</h3>
+                <p id="kpi-ops-today" class="text-3xl font-bold text-slate-100 mt-2">0</p>
+            </div>
+            
+            <div class="bg-slate-800 p-6 rounded-lg shadow-md border border-slate-700">
+                <h3 class="text-sm font-medium text-slate-400">Eficiência Geral</h3>
+                <p id="kpi-efficiency" class="text-3xl font-bold text-green-400 mt-2">0%</p>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-md border border-slate-700">
+                <h3 class="text-sm font-medium text-slate-400">Tempo de Parada (Hoje)</h3>
+                <p id="kpi-downtime" class="text-3xl font-bold text-yellow-400 mt-2">0 min</p>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-lg shadow-md border border-slate-700">
+                <h3 class="text-sm font-medium text-slate-400">Taxa de Rejeito</h3>
+                <p id="kpi-reject-rate" class="text-3xl font-bold text-red-500 mt-2">0%</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-800 p-6 rounded-lg shadow-md border border-slate-700 min-h-[400px]">
+    <h3 class="text-lg font-semibold text-slate-100">Produção por Máquina</h3>
+        <div class="relative h-96 mt-4"><canvas id="machine-production-chart"></canvas></div>
+    </div>
+            <div id="performance-card" class="bg-slate-800 p-6 rounded-lg shadow-md border border-slate-700 min-h-[400px]">
+    <h3 class="text-lg font-semibold text-slate-100">Performance de Produtos</h3>
+</div>
+        </div>
+
+    </div>
+</template>
+    <template id="dashboard-template">
+        <div class="p-4 md:p-8 h-full flex flex-col">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex-shrink-0">Painel de Produção em Tempo Real</h1>
+            <div id="kanban-board" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 flex-grow min-h-0"></div>
+        </div>
+    </template>
+
+    <template id="reports-template">
+        <div class="p-4 md:p-8 space-y-8">
+            <div class="flex justify-between items-center">
+
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Relatórios e Análises</h1>
+
+    <button id="generate-pdf-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Gerar PDF Semanal
+    </button>
+
+</div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg col-span-1 lg:col-span-3">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">OEE - Overall Equipment Effectiveness</h2>
+                    <div id="oee-container" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg col-span-1 lg:col-span-2">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Histórico de Produção</h2>
+                    <div class="relative h-96">
+                        <canvas id="production-history-chart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Principais Motivos de Parada (minutos)</h2>
+                     <div class="relative h-96">
+                        <canvas id="stop-reasons-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="registrations-template">
+    <div class="p-4 md:p-8 flex flex-col h-full">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex-shrink-0">Cadastros</h1>
+
+        <div id="registrations-tabs" class="flex items-center border-b border-gray-200 dark:border-slate-700 mb-6 flex-shrink-0">
+            </div>
+
+        <div id="registrations-content" class="flex-grow overflow-y-auto">
+            </div>
+    </div>
+</template>
+
+    <template id="users-template">
+        <div class="p-4 md:p-8 space-y-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Gerenciamento de Usuários</h1>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md border dark:border-slate-700">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Adicionar Novo Usuário</h2>
+                    <form id="add-user-form" class="space-y-4">
+                        <input type="email" name="email" placeholder="Email do usuário" required class="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                        <input type="password" name="password" placeholder="Senha" required class="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                        <select name="role" class="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+    <option value="Impressão">Operador de Impressão</option>
+    <option value="Corte">Operador de Corte</option>
+    <option value="Costura">Operador de Costura</option>
+    <option value="Supervisor">Supervisor</option>
+    <option value="Gestor">Gestor</option>
+</select>
+
+                        <p id="add-user-error" class="text-red-500 text-sm"></p>
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-500 shadow-md shadow-indigo-600/30 transition-all duration-200 transform hover:scale-[1.02] disabled:bg-gray-400">
+                            Criar Usuário
+                        </button>
+                    </form>
+                </div>
+                <div class="md:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Usuários do Sistema</h2>
+                    <ul id="users-list" class="space-y-2"></ul>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <template id="operator-template">
+         <div class="p-4 md:p-8 space-y-6">
+            <div class="flex items-center justify-center relative">
+                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Modo Chão de Fábrica</h1>
+                 <button id="change-machine-btn" class="absolute left-0 text-sm text-blue-500 hover:underline">home</button>
+            </div>
+            <div id="operator-machine-selection" class="max-w-lg mx-auto show">
+                <label for="machine-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Selecione sua Máquina</label>
+                <select id="machine-select" class="mt-1 block w-full pl-3 pr-10 py-3 text-lg border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                </select>
+            </div>
+            <div id="operator-content" class="space-y-6"></div>
+        </div>
+    </template>
+
+        <div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-3"></div>
+
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.9.1/firebase-messaging.js"></script>
+
+        <script type="module" src="main .js"></script>   
+
+</body>
+</html>
