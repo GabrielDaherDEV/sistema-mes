@@ -4,8 +4,8 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js" // <-- ADICIONE ESTA LINHA
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-functions.js"; // <-- ADICIONE ESTA LINHA
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js" 
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-functions.js"; 
 
 import {
   getFirestore,
@@ -565,14 +565,12 @@ const renderDashboard = () => {
           currentStage.status === "Em produção" ||
           currentStage.status === "Parado"
         if (isStageActive) {
-          return true // Se o estágio está ativo neste setor, a OP pertence a esta coluna.
+          return true 
         }
 
-        // CONDIÇÃO 2: O estágio está AGUARDANDO e é o próximo a ser feito?
+       
         const isStageWaiting = currentStage.status === "Aguardando"
-        // É o primeiro estágio da OP?
         const isFirstStage = stageIndex === 0
-        // Ou o estágio anterior foi finalizado?
         const isPreviousStageDone =
           !isFirstStage && op.stages[stageIndex - 1].status === "Finalizado"
 
@@ -681,7 +679,6 @@ const updateManagerDashboardKPIs = () => {
     }
   })
 
-  // ... (TODA A LÓGICA DOS 4 KPIs CONTINUA IGUAL AQUI) ...
   const hoje = new Date().toISOString().slice(0, 10)
   const opsToday = allOps.filter((op) => op.createdAt.startsWith(hoje))
   document.getElementById("kpi-ops-today").textContent = opsToday.length
@@ -730,7 +727,6 @@ const updateManagerDashboardKPIs = () => {
     totalDowntimeMinutes
   )} min`
 
-  // ... (A LÓGICA DO GRÁFICO DE BARRAS CONTINUA IGUAL AQUI) ...
   const machineProductionData = allOps.reduce((acc, op) => {
     if (!op.machineName || op.machineName === "N/A") return acc
     const rejectsInOp = (op.stages || [])
@@ -811,7 +807,6 @@ const updateManagerDashboardKPIs = () => {
         if (op.overallStatus === "Em produção") statusColor = "text-yellow-400"
         if (op.overallStatus === "Parado") statusColor = "text-red-400"
 
-        // ### MUDANÇA 1: Adicionando classe, data-op-id e estilo de cursor ###
         contentHTML += `
                     <div class="op-details-item p-3 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors" data-op-id="${
                       op.id
@@ -863,7 +858,7 @@ const renderReports = () => {
     .addEventListener("click", generateWeeklyReportPDF)
 
   setTimeout(() => {
-    // Lógica do OEE (já corrigida)
+    // Lógica do OEE
     const finishedOps = state.productionOrders.filter(
       (op) =>
         op.overallStatus === "Finalizado" && op.stages && op.stages.length > 0
@@ -933,7 +928,7 @@ const renderReports = () => {
             )}%</p></div>
         `
 
-    // GRÁFICO 1: MOTIVOS DE PARADA (CÓDIGO COMPLETO)
+    // GRÁFICO 1: MOTIVOS DE PARADA 
     const stopReasonsCtx = document.getElementById("stop-reasons-chart")
     if (stopReasonsCtx) {
       const stopReasonsData = state.productionOrders
@@ -982,7 +977,7 @@ const renderReports = () => {
       })
     }
 
-    // GRÁFICO 2: HISTÓRICO DE PRODUÇÃO (CÓDIGO COMPLETO)
+    // GRÁFICO 2: HISTÓRICO DE PRODUÇÃO 
     const historyCtx = document.getElementById("production-history-chart")
     if (historyCtx) {
       const productionByDay = state.productionOrders
@@ -1044,7 +1039,7 @@ const renderReports = () => {
     }
   }, 0)
 }
-// ↓↓↓ COLE TODO O CÓDIGO ABAIXO NO SEU ARQUIVO ↓↓↓
+
 
 const generateWeeklyReportPDF = () => {
   const doc = new jspdf.jsPDF()
@@ -1149,7 +1144,6 @@ const generateWeeklyReportPDF = () => {
   doc.save(`Relatorio_Semanal_${hoje.toISOString().slice(0, 10)}.pdf`)
 }
 
-// ACHE a função renderRegistrations no seu main .js e SUBSTITUA por esta:
 
 const renderRegistrations = () => {
   DOMElements.pageContent.innerHTML = ""
@@ -1188,8 +1182,7 @@ const renderRegistrations = () => {
     (c) => c.title === state.activeRegistrationTab
   )
   if (activeConfig) {
-    // CORREÇÃO IMPORTANTE AQUI:
-    // Pega a lista de dados usando a 'stateKey' para olhar o 'álbum' em tempo real
+  
     const dataList = activeConfig.stateKey ? state[activeConfig.stateKey] : []
 
     const card = document.createElement("div")
@@ -1252,7 +1245,6 @@ const renderRegistrations = () => {
                 }">
                     ${dataList
                       .map((item) => {
-                        // CASO 1: Se a aba for de "Produtos"
                         if (activeConfig.collectionName === "products") {
                           return `
             <li key="${item.id}" class="flex justify-between items-center p-2 bg-gray-50 dark:bg-slate-700 rounded">
@@ -1265,7 +1257,6 @@ const renderRegistrations = () => {
                 </div>
             </li>`
                         }
-                        // CASO 2: Se a aba for de "Matérias-Primas"
                         else if (
                           activeConfig.collectionName === "raw_materials"
                         ) {
@@ -1295,7 +1286,6 @@ const renderRegistrations = () => {
         </div>
     </li>`
                         }
-                        // CASO 3: Para todas as outras abas (Máquinas, Motivos de Parada, etc.)
                         else {
                           return `
             <li key="${
@@ -1364,16 +1354,13 @@ const renderRegistrations = () => {
             { sector: "Corte", status: "Aguardando", responsible: null },
             { sector: "Costura", status: "Aguardando", responsible: null },
           ]
-          // Pega o ID do produto que foi selecionado na lista
           const selectedProductId = opFromForm.productId
           const customProductName = opFromForm.customProductName.trim() // .trim() remove espaços
 
           let finalProductId = null
           let finalProductName = ""
 
-          // Lógica de decisão para saber qual campo usar
           if (selectedProductId) {
-            // PRIORIDADE 1: Se o usuário selecionou um produto da lista
             const selectedProduct = state.products.find(
               (p) => p.id === selectedProductId
             )
@@ -1388,11 +1375,10 @@ const renderRegistrations = () => {
             showAlert(
               "Você precisa selecionar um produto existente OU digitar uma descrição para o serviço/produto customizado."
             )
-            button.disabled = false // Reabilita o botão
-            return // Para a execução da função aqui.
+            button.disabled = false 
+            return 
           }
 
-          // Cria o opData com as informações finais corretas
           const opData = {
             id: newOpId,
             productId: finalProductId,
@@ -1455,9 +1441,7 @@ console.log("Conteúdo do state.userProfile antes da transação:", state.userPr
 
   contentContainer.querySelectorAll(".delete-item-btn").forEach((button) => {
     button.addEventListener("click", async (e) => {
-      // Pega o ID direto do botão (isso já funcionava)
       const id = e.target.dataset.id
-      // Pega a coleção direto do botão (é a informação nova que colocamos)
       const collectionName = e.target.dataset.collection
 
       showConfirm("Tem certeza que deseja apagar este item?", async () => {
@@ -1500,10 +1484,8 @@ const showBomModal = (productId) => {
   const product = state.products.find((p) => p.id === productId)
   if (!product) return
 
-  // Garante que o produto tenha um array 'bom', mesmo que seja um produto antigo
   if (!product.bom) product.bom = []
 
-  // Monta a lista de materiais já vinculados ao produto
   const currentMaterialsHTML =
     product.bom
       .map((materialItem) => {
@@ -1524,12 +1506,10 @@ const showBomModal = (productId) => {
       .join("") ||
     '<p class="text-sm text-slate-400">Nenhum material adicionado.</p>'
 
-  // Monta as opções do <select> com os materiais disponíveis que temos no state
   const materialOptionsHTML = state.rawMaterials
     .map((rm) => `<option value="${rm.id}">${rm.name}</option>`)
     .join("")
 
-  // Cria o HTML do Modal
   const modalHTML = `
         <div class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
             <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md m-4 p-6 relative border border-slate-700">
@@ -1550,10 +1530,8 @@ const showBomModal = (productId) => {
         </div>
     `
 
-  // Coloca o HTML do modal na página
   DOMElements.customModalContainer.innerHTML = modalHTML
 
-  // Adiciona as funções aos botões do modal
   document.getElementById("close-bom-modal").onclick = () =>
     (DOMElements.customModalContainer.innerHTML = "")
 
@@ -1567,10 +1545,8 @@ const showBomModal = (productId) => {
         quantityNeeded: Number(form.quantity.value),
       }
 
-      // Adiciona o novo material à lista 'bom' do produto
       product.bom.push(newMaterial)
 
-      // Atualiza o documento do produto no Firebase
       const productRef = doc(
         db,
         `artifacts/${firebaseConfig.appId}/public/data/companies/${state.userProfile.companyId}/products`,
@@ -1578,7 +1554,6 @@ const showBomModal = (productId) => {
       )
       await updateDoc(productRef, { bom: product.bom })
 
-      // Fecha e reabre o modal para mostrar a lista atualizada na hora
       DOMElements.customModalContainer.innerHTML = ""
       showBomModal(productId)
     })
@@ -1593,16 +1568,13 @@ const renderUsers = () => {
 
   const usersList = document.getElementById("users-list")
 
-  // ### A LÓGICA DO FILTRO ACONTECE AQUI ###
-  // 1. Pega o ID da empresa do gestor que está logado.
+ 
   const currentCompanyId = state.userProfile.companyId
 
-  // 2. Filtra a lista de todos os usuários para pegar apenas os da mesma empresa.
   const companyUsers = state.allUsers.filter(
     (user) => user.companyId === currentCompanyId
   )
 
-  // 3. Usa a lista FILTRADA (companyUsers) para criar o HTML.
   usersList.innerHTML = companyUsers
     .map(
       (user) => `
@@ -1653,7 +1625,6 @@ const renderUsers = () => {
   errorEl.textContent = '';
   button.disabled = true;
 
-  // Prepara os dados para enviar para a Cloud Function
   const data = {
     email: form.email.value,
     password: form.password.value,
@@ -1661,19 +1632,17 @@ const renderUsers = () => {
   };
 
   try {
-    // Define qual Cloud Function vamos chamar
     const createNewUser = httpsCallable(functions, 'createNewUser');
 
-    // Chama a função e espera o resultado
     const result = await createNewUser(data);
 
-    console.log(result.data.message); // Exibe a mensagem de sucesso
+    console.log(result.data.message); 
     showAlert("Usuário criado com sucesso!");
     form.reset();
 
   } catch (error) {
     console.error("Erro ao chamar a Cloud Function:", error);
-    errorEl.textContent = error.message; // Exibe o erro no formulário
+    errorEl.textContent = error.message; 
   } finally {
     button.disabled = false;
   }
@@ -1693,7 +1662,6 @@ const renderOperatorView = () => {
   )
   const changeMachineBtn = document.getElementById("change-machine-btn")
 
-  // Esconde os elementos da versão antiga que não usamos mais
   if (changeMachineBtn) changeMachineBtn.style.display = "none"
   if (machineSelectionDiv) machineSelectionDiv.style.display = "none"
 
@@ -1710,7 +1678,6 @@ const renderOperatorView = () => {
     titleElement.innerHTML = `Modo Chão de Fábrica: <span class="text-blue-500">${userSector}</span>`
   }
 
-  // Lógica para encontrar a OP ativa ou as OPs em espera
   const activeOp = state.productionOrders.find((op) => {
     const activeStage = op.stages?.find(
       (s) =>
@@ -1721,7 +1688,6 @@ const renderOperatorView = () => {
   })
 
   if (activeOp) {
-    // Se houver uma OP ativa, mostra os detalhes e botões de ação
     const currentStage = activeOp.stages.find((s) => s.sector === userSector)
     const statusColor =
       currentStage.status === "Em produção"
@@ -1745,7 +1711,6 @@ const renderOperatorView = () => {
     }
     operatorContent.innerHTML = opDetails + actionButtons
   } else {
-    // Se não houver OP ativa, mostra a lista de próximas tarefas
     const waitingOpsElements = state.productionOrders
       .filter((op) => op.overallStatus !== "Finalizado")
       .map((op) => {
@@ -1838,7 +1803,6 @@ else if (action === "finish_stage") {
             const isLastStage = stageIndex + 1 >= updatedStages.length;
 
             if (isLastStage) {
-                // Se for a última etapa, atualiza o status geral da OP para "Finalizado"
                 updatedStages[stageIndex].status = "Finalizado";
                 updatedStages[stageIndex].completedAt = new Date().toISOString();
                 await updateDoc(opRef, {
@@ -1847,7 +1811,6 @@ else if (action === "finish_stage") {
                 });
                 showAlert("Ordem de Produção finalizada com sucesso!");
             } else {
-                // Se não for a última, apenas libera a próxima etapa
                 updatedStages[stageIndex].status = "Finalizado";
                 updatedStages[stageIndex].completedAt = new Date().toISOString();
                 updatedStages[stageIndex + 1].status = "Aguardando";
@@ -1869,7 +1832,6 @@ else if (action === "finish_stage") {
 const showStopModal = (opId, stageIndex) => {
   const modalContainer = DOMElements.customModalContainer
 
-  // Cria as opções do <select> a partir dos motivos de parada cadastrados
   const stopReasonOptions = state.stopReasons
     .map(
       (reason) => `<option value="${reason.id}">${reason.description}</option>`
@@ -1913,14 +1875,11 @@ const showStopModal = (opId, stageIndex) => {
     const opData = state.productionOrders.find((o) => o.id === opId)
     const updatedStages = JSON.parse(JSON.stringify(opData.stages))
 
-    // Atualiza o status da etapa para 'Parado'
     updatedStages[stageIndex].status = "Parado"
 
-    // Garante que o histórico de paradas exista
     if (!updatedStages[stageIndex].stopHistory) {
       updatedStages[stageIndex].stopHistory = []
     }
-    // Adiciona a nova parada ao histórico
     updatedStages[stageIndex].stopHistory.push({
       reason: reason,
       startTime: new Date().toISOString(),
@@ -2034,7 +1993,6 @@ const showAddLotModal = (materialId, materialName) => {
         receivedDate: form.receivedDate.value,
       }
 
-      // Caminho para a sub-coleção 'lots' dentro do material específico
       const lotsCollectionRef = collection(
         db,
         `artifacts/${firebaseConfig.appId}/public/data/companies/${state.userProfile.companyId}/raw_materials/${materialId}/lots`
@@ -2054,7 +2012,6 @@ const showLotSelectionModal = (opId) => {
   }
 
   const product = state.products.find((p) => p.id === opData.productId)
-  // Se o produto não precisa de material, o fluxo normal de confirmação acontece
   if (!product || !product.bom || product.bom.length === 0) {
     showConfirm(`Iniciar a etapa para a OP ${opId}?`, async () => {
       const opRef = doc(
@@ -2081,7 +2038,6 @@ const showLotSelectionModal = (opId) => {
     return
   }
 
-  // Se precisa de material, o modal de lotes é montado
   const modalHTML = `
         <div class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
             <div id="lot-selection-content" class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg m-4 p-6 relative border border-slate-700">
@@ -2297,7 +2253,6 @@ DOMElements.darkModeToggle.addEventListener("click", () => {
   DOMElements.themeIconMoon.classList.toggle("hidden", state.darkMode)
 })
 const showMaterialLotsModal = (materialId, materialName) => {
-  // Mostra um modal inicial de "Carregando..."
   let modalHTML = `
         <div class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4">
             <div id="lots-list-content" class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl m-4 p-6 relative border border-slate-700">
@@ -2312,10 +2267,8 @@ const showMaterialLotsModal = (materialId, materialName) => {
   document.getElementById("close-lots-modal").onclick = () =>
     (DOMElements.customModalContainer.innerHTML = "")
 
-  // Função para buscar os lotes e construir a lista
   const buildLotsList = async () => {
-    // ### A CORREÇÃO ESTÁ AQUI NA LINHA ABAIXO ###
-    // O caminho agora inclui a empresa do usuário logado
+ 
     const lotsRef = collection(
       db,
       `artifacts/${firebaseConfig.appId}/public/data/companies/${state.userProfile.companyId}/raw_materials/${materialId}/lots`
@@ -2345,7 +2298,7 @@ const showMaterialLotsModal = (materialId, materialName) => {
                         <tbody>
                             ${lots
                               .map((lot) => {
-                                totalStock += lot.quantity // Soma a quantidade de cada lote
+                                totalStock += lot.quantity 
                                 return `
                                     <tr class="border-b border-slate-700">
                                         <th scope="row" class="px-6 py-4 font-medium text-white whitespace-nowrap">${
@@ -2496,12 +2449,11 @@ const renderAuthScreen = () => {
         renderApp();
 
     } catch (error) {
-        console.error("ERRO FINAL:", error); // Mudado para mostrar o erro completo
+        console.error("ERRO FINAL:", error); 
         authError.textContent = "Ocorreu um erro ao tentar fazer login. Verifique o console.";
     }
 
     } else {
-      // A LÓGICA DE REGISTRAR UM NOVO USUÁRIO CONTINUA A MESMA
       const q = query(usersCollectionRef, where("email", "==", email))
       const existingUserSnapshot = await getDocs(q)
       if (!existingUserSnapshot.empty) {
@@ -2509,16 +2461,14 @@ const renderAuthScreen = () => {
         authSubmitButton.disabled = false
         return
       }
-      // No futuro, teremos que adicionar o companyId aqui também
+   
       const userProfile = {
         email,
         password,
         role: hasGestor ? "Impressão" : "Gestor",
       }
 
-      // Aqui você precisará usar o createUserWithEmailAndPassword do Firebase Auth
-      // e depois salvar o perfil no Firestore.
-      // Por enquanto, a lógica original de addDoc pode ser mantida para teste.
+     
       const userDocRef = await addDoc(usersCollectionRef, userProfile)
       state.userProfile = { id: userDocRef.id, ...userProfile }
       renderApp()
@@ -2557,7 +2507,6 @@ const requestNotificationPermission = async () => {
 }
 
 const setupFirestoreListeners = () => {
-  // NOVO: Desliga todos os "ouvintes" antigos para evitar duplicação
   activeListeners.forEach((unsubscribe) => unsubscribe())
   activeListeners = []
 
@@ -2569,7 +2518,6 @@ const setupFirestoreListeners = () => {
   const appId = firebaseConfig.appId
   const companyId = state.userProfile.companyId
 
-  // Listener para a coleção GLOBAL de usuários
   const usersCollectionRef = collection(
     db,
     `artifacts/${appId}/public/data/users`
@@ -2623,7 +2571,7 @@ const setupFirestoreListeners = () => {
   const notificationsQuery = query(
     collection(db, `artifacts/${appId}/public/data/notifications`),
     where("companyId", "==", companyId),
-    where("createdAt", ">", oneMinuteAgo) // <-- O NOVO FILTRO DE TEMPO
+    where("createdAt", ">", oneMinuteAgo) 
   )
   const unsubscribeNotifications = onSnapshot(
     notificationsQuery,
@@ -2638,12 +2586,11 @@ const setupFirestoreListeners = () => {
       })
     }
   )
-  activeListeners.push(unsubscribeNotifications) // Registra na lista
+  activeListeners.push(unsubscribeNotifications) 
 }
 
 const init = () => {
-  // Simulação de autenticação, removendo a dependência do signInAnonymously
-  // Isso torna o app funcional offline, mas a autenticação é simulada.
+  
   DOMElements.loadingScreen.classList.add("hidden")
   renderApp()
 
